@@ -5,11 +5,11 @@
   "main": "/src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "cd login && npm run build",
-    "install-login": "cd login && npm install",
-    "heroku-postbuild": "npm run install-login && npm run build",
+    "build": "cd frontEnd && npm run build",
+    "install-frontEnd": "cd frontEnd && npm install",
+    "heroku-postbuild": "npm run install-frontEnd && npm run build",
     "start": "node /src/index.js",
-    "login": "cd login && npm start"
+    "frontEnd": "cd frontEnd && npm start"
   },
   "author": "",
   "license": "ISC",
