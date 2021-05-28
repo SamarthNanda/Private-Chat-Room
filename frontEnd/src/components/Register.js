@@ -5,7 +5,8 @@ import { Link } from 'react-router-dom';
 
 
 export default function Register() {
-    const URL = "http://localhost:3001";
+    const PORT = process.env.PORT || 3001;
+    const URL = `http://localhost:${PORT}`;
 
     // register route----------------------------------------------------------------------------
     const [userTypeReg, setUserTypeReg] = useState("");

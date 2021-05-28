@@ -5,8 +5,8 @@ import Axios from 'axios';
 import { Link } from 'react-router-dom';
 
 export default function Login() {
-
-    const URL = "http://localhost:3001";
+    const PORT = process.env.PORT || 3001;
+    const URL = `http://localhost:${PORT}`;
 
     // login route------------------------------------------------------------------------------
     const [username, setUsername] = useState("");

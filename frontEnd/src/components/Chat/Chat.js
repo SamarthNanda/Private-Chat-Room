@@ -27,8 +27,8 @@ function Chat() {
 
     const [users, setUsers] = useState("");
 
-    const URL = "http://localhost:3001";
     const PORT = process.env.PORT || 3001;
+    const URL = `http://localhost:${PORT}`;
     const ENDPOINT = `localhost:${PORT}`;
     var connectionOptions = {
         "force new connection": true,
