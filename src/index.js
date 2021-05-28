@@ -19,7 +19,7 @@ app.use(cors());
 const PORT = process.env.PORT || 3001;
 
 app.get("/*", function (req, res) {
-    res.send(__dirname = '../frontEnd/public/index.html');
+    res.render('../frontEnd/public/index.html');
 })
 
 // Database-----------------------------------------------------------------------------------
