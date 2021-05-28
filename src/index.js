@@ -14,7 +14,7 @@ const { addUser, removeUser, getUser, getUsersInRoom } = require("./Api/Helper/c
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
-app.set('view engine', 'jade');
+app.set('view engine', 'html');
 app.use(cors());
 
 const PORT = process.env.PORT || 3001;
