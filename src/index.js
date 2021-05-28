@@ -19,7 +19,7 @@ app.use(cors());
 const PORT = process.env.PORT || 3001;
 
 app.get("/*", function (req, res) {
-    res.render('../frontEnd/public/index.html');
+    res.sendFile(path.join(__dirname = 'frontEnd/public/index.html'));
 })
 
 // Database-----------------------------------------------------------------------------------
@@ -57,6 +57,7 @@ require("./Api/Routes/RefreshPostRoute")(app);
 // heroku production---------------------------------------------------------------------------
 if (process.env.NODE_ENV === "production") {
     app.use(express.static("frontEnd/build"));
+    app.get('*', (req, res) => {    res.sendFile(path.join(__dirname = 'frontEnd/build/index.html'));});
 }
 
 server.listen(PORT, function (req, res) {
