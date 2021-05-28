@@ -8,7 +8,7 @@ import './InfoBar.css';
 function infoBar({ room }) {
 
     function handleClick() {
-        localStorage.removeItem("user");
+        localStorage.removeItem("token");
     }
     return (
         <div className="infoBar">

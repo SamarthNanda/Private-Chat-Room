@@ -4,6 +4,11 @@
 
 h1{
   font-size: 60px;
+  color: #37c9e2;
+}
+
+.align{
+  text-align:left;
 }
 
 textarea{

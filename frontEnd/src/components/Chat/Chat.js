@@ -1,6 +1,8 @@
 import { React, useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import { Link } from 'react-router-dom';
+import Decode from 'jwt-decode';
+import jwt from 'jsonwebtoken';
 
 
 import InfoBar from './InfoBar/InfoBar';
@@ -9,10 +11,12 @@ import Input from './Input/Input';
 import TextContainer from './TextContainer/TextContainer'
 
 import './Chat.css';
+import axios from 'axios';
 
 let socket;
 
 function Chat() {
+
     const [loggedIn, setLoggedIn] = useState(false);
 
     const [email, setEmail] = useState("");
@@ -23,6 +27,7 @@ function Chat() {
 
     const [users, setUsers] = useState("");
 
+    const URL = "http://localhost:3001";
     const PORT = process.env.PORT || 3001;
     const ENDPOINT = `localhost:${PORT}`;
     var connectionOptions = {
@@ -34,19 +39,24 @@ function Chat() {
 
     //useEffect for joining the chat -----------------------------------------------------
     useEffect(() => {
-        const user = JSON.parse(localStorage.getItem("user"));
+        const token = JSON.parse(localStorage.getItem("token"));
+        const decodedToken = Decode(token);
 
-        if (user === null) {
+        if (decodedToken === null) {
             setLoggedIn(false);
         } else {
             setLoggedIn(true);
-            const { email, room } = user;
-            
+            const { email, room } = decodedToken;
+
             socket = io(ENDPOINT, connectionOptions);
             setEmail(email);
             setRoom(room);
 
-            socket.emit("join", { email, room }, function (){});
+            socket.on("previousMessages", function ({ previousMessages }) {
+                setMessages(...messages, previousMessages);
+            })
+
+            socket.emit("join", { email, room }, function () { });
 
             return (function () {
                 socket.emit("disconnect");
@@ -58,14 +68,33 @@ function Chat() {
 
     // useEffect for manageing meassages in chat------------------------------------------
     useEffect(() => {
-        const user = JSON.parse(localStorage.getItem("user"));
-        if (user !==null) {
+        const token = JSON.parse(localStorage.getItem("token"));
+        const refreshToken = JSON.parse(localStorage.getItem("refreshToken"));
+
+        jwt.verify(token, "jwtSecret", function (err, decodedToken) {
+            if (err) {
+                axios
+                    .post(`${URL}/refresh`, { refreshToken: refreshToken })
+                    .then(function (response) {
+                        if (response.data.success === true) {
+                            localStorage.setItem("token", JSON.stringify(response.data.token));
+                            console.log("new token assigned");
+                        } else {
+                            setLoggedIn(false);
+                        }
+                    });
+            }
+        });
+
+        if (token !== null) {
             socket.on("message", function (message) {
                 setMessages([...messages, message]);
             })
             socket.on("roomData", function ({ users }) {
                 setUsers(users);
             })
+        } else {
+            setLoggedIn(false);
         }
 
     }, [messages])
@@ -74,15 +103,44 @@ function Chat() {
         event.preventDefault();
 
         if (message) {
+            handleSend(event);
             socket.emit("sendMessage", message, () => {
                 setMessage("");
             })
         }
     }
 
+    // post request on chat to save messages----------------------------------------------
+    function handleSend(e) {
+        e.preventDefault();
+        const token = JSON.parse(localStorage.getItem("token"));
+        if (token) {
+            axios
+                .post(`${URL}/chat`, {
+                    room: room,
+                    email: email,
+                    message: message
+                }, {
+                    headers: {
+                        authorization: `bearer ${token}`,
+                    }
+                }).then(function (response) {
+                    if (response.data.isAuth === false) {
+                        localStorage.removeItem("token");
+                        setLoggedIn(false);
+                    } else {
+                        console.log(response.data.message);
+                    }
+                });
+        } else {
+            setLoggedIn(false);
+        }
+    }
+
+
     return (
         <div>
-            {loggedIn 
+            {loggedIn
                 ? <div><h1 className="mt-5 mb-5">Private Chat Room</h1>
                     <div className="container">
                         <InfoBar room={room} />
@@ -95,7 +153,7 @@ function Chat() {
                     <Link to="/">
                         <button type="submit" className="btn-success loginbtn mt-4">Login</button>
                     </Link>
-                    </div>
+                </div>
             }
 
         </div>

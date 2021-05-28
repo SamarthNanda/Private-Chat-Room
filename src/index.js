@@ -3,7 +3,6 @@ const express = require("express");
 const app = express();
 
 const bodyParser = require("body-parser");
-const mongoose = require("mongoose");
 const cors = require("cors");
 
 const http = require("http");
@@ -11,12 +10,7 @@ const server = http.createServer(app);
 const socketio = require("socket.io");
 const io = socketio(server);
 
-const {addUser , removeUser , getUser , getUsersInRoom} = require("./Api/Helper/chatUsers");
-
-const bcrypt = require("bcrypt");
-const saltRounds = 10;
-
-const jwt = require("jsonwebtoken");
+const { addUser, removeUser, getUser, getUsersInRoom } = require("./Api/Helper/chatUsers");
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
@@ -24,161 +18,46 @@ app.use(cors());
 
 const PORT = process.env.PORT || 3001;
 
-// Socket.io----------------------------------------------------------------------------------
+app.get("/*", function (req, res) {
+    res.sendFile(path.join(__dirname, "C:\Users\samar\Desktop\Heroku_reactjs_login-master\frontEnd\public\index.html"))
+})
 
-io.on("connection", function(socket) {
-    console.log('a user connected');
-
-    socket.on("join" , function({ email , room }, callback){
-        const { user } = addUser(socket.id , email , room);
-
-        socket.emit("message" , {user:"admin" , text:`Hey ${user.name} , Welcome to the Room ${user.room}` });
-        socket.broadcast.to(user.room).emit("message" , { user:"admin" , text:`${user.name}, has Joined!` })
-        
-        socket.join(user.room);
-
-        io.to(user.room).emit("roomData" , {room:user.room , users:getUsersInRoom(user.room)});
-
-        callback();
-    })
-
-    socket.on("sendMessage" , function( message , callback ){
-        const user = getUser(socket.id);
-        io.to(user.room).emit("message" , { user:user.name , text:message })
-        io.to(user.room).emit("roomData" , {room:user.room , users:getUsersInRoom(user.room)});
-        callback();
-    })
-
-    socket.on("disconnect" , function(){
-        const user = removeUser(socket.id);
-        if(user){
-            io.to(user.room).emit("message" , {user:"admin" , text:`${user.name}, has Left the Chat!`});
-        }
-    })
-
-});
-
-// database-----------------------------------------------------------------------------------
+// Database-----------------------------------------------------------------------------------
 
 require("./Config/db")();
 
 var { User } = require("./Api/Models/User");
 
+var { Message } = require("./Api/Models/Message");
 
-// register route------------------------------------------------------------------------------
-app.post("/register", async function (req, res) {
-    console.log("in reg route");
-    const userType = req.body.userType;
-    const username = req.body.username;
-    const password = req.body.password;
+// Auth MiddleWare----------------------------------------------------------------------------
 
-    const existingUser = await User.findOne({ email: username });
-    if (existingUser) {
-        console.log("user existed")
-        res.json({ message: "error" });
-    } else {
-        bcrypt.hash(password, saltRounds, function (err, hash) {
+const auth = require("./Api/Middleware/auth");
 
-            try {
+// Socket.io----------------------------------------------------------------------------------
 
-                const newUser = new User({
-                    userType: userType,
-                    email: username,
-                    password: hash
-                })
+require("./Api/Routes/ChatSocket")(io);
 
-                newUser.save(function (err) {
-                    if (err) {
-                        console.log("error  " + err);
-                        res.json({ message: "error" })
-                    } else {
-                        console.log("user is saved in database");
-                        res.json({ message: "saved" })
-                    }
-                });
-            } catch (error) {
-                console.log(error);
-            }
+// Register post route-------------------------------------------------------------------------
 
-        });
-    }
-});
+require("./Api/Routes/RegisterPostRoute")(app);
 
+// Login post route----------------------------------------------------------------------------
 
-// login route------------------------------------------------------------------------------
-app.post("/login", async function (req, res) {
-    const username = req.body.username;
-    const password = req.body.password;
-    const room = req.body.room;
+require("./Api/Routes/LoginPostRoute")(app);
 
-    User.findOne({ email: username }, function (err, foundUser) {
-        if (!foundUser) {
-            res.json({ message: "User not found" });
-        }
-        if (foundUser) {
-            bcrypt.compare(password, foundUser.password, function (err, result) {
-                console.log(result);
-                if (result) {
-                    const token = jwt.sign({ email: foundUser.email, userType: foundUser.userType, id: foundUser._id }, "jwtSecret", {
-                        expiresIn: '20s'
-                    });
-                    const refreshToken = jwt.sign({ email: foundUser.email, userType: foundUser.userType, id: foundUser._id }, "jwtRefreshSecret", {
-                        expiresIn: '7d'
-                    });
+// Chat post route-----------------------------------------------------------------------------
 
-                    console.log("logged in");
-                    res.json({ refreshToken: refreshToken, token: token, email: foundUser.email, userType: foundUser.userType, room:room , id: foundUser._id });
-                }
-                else {
-                    console.log("wrong password");
-                    res.json({ message: "wrong password" });
-                }
-            });
+require("./Api/Routes/ChatPostRoute")(app);
 
+// RefreshToken post Route---------------------------------------------------------------------
 
-        }
+require("./Api/Routes/RefreshPostRoute")(app);
 
-    });
-});
-
-// app.post("/chat" , function(req,res){
-//     const room = req.body.room;
-//     const message = req.body.message;
-//     const email = req.body.email;
-
-
-
-// });
-
-
-// const auth = require("./Api/Middleware/auth")();
-
-// app.post("/refresh", (req, res, next) =>{
-//     const refreshToken = req.body.token;
-//     if (!refreshToken) {
-//         return res.json({ message: "Refresh token not found, login again" });
-//     }
-//     // If the refresh token is valid, create a new accessToken and return it. 
-//     jwt.verify(refreshToken, "jwtRefreshSecret", (err, foundUser) => {
-//         if (err) {
-//             const token = jwt.sign({ email: foundUser.email, userType: foundUser.userType, id: foundUser._id }, "jwtSecret", {expiresIn: "20s"}); 
-//             return res.json({success: true, token }); 
-//         } 
-//         else {
-//         return res.json({success: false , message: "Invalid refresh token"});
-//         }
-//     });
-// });
-
-// app.get("/chats",auth  , function (req ,res){
-
-//     res.json({ message: "allowed in chat room" });
-// })
-
+// heroku production---------------------------------------------------------------------------
 if (process.env.NODE_ENV === "production") {
     app.use(express.static("frontEnd/build"));
 }
-
 
 server.listen(PORT, function (req, res) {
     console.log("server is working on port : " + PORT);

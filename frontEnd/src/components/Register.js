@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 
 
 export default function Register() {
-
+    const URL = "http://localhost:3001";
 
     // register route----------------------------------------------------------------------------
     const [userTypeReg, setUserTypeReg] = useState("");
@@ -18,7 +18,7 @@ export default function Register() {
     function register(e) {
         e.preventDefault();
 
-        Axios.post('/register', {
+        Axios.post(`${URL}/register`, {
             userType: userTypeReg,
             username: usernameReg,
             password: passwordReg
@@ -30,7 +30,8 @@ export default function Register() {
 
     return (
         <div className="form">
-            <h1 className=" mt-5">Registration Page</h1>
+            <h1 className="mt-5">Private Chat Room</h1>
+            <h3 className="mt-4 align">Register</h3>
             <form onSubmit={register}>
                 <select type="text" id="userType" className="form-control mt-4" name="userType" placeholder="User Type (Admin || Student)" required
                     onChange={(e) => {

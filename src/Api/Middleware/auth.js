@@ -1,16 +1,21 @@
 const jwt = require("jsonwebtoken");
 
-module.exports = auth = function (req , res, next){
-    let userData = req.headers["x-access-token"];
-    const token = userData;
+module.exports = auth = function (req, res, next) {
+    const bearerData = req.headers.authorization;
+    if (typeof bearerData !== "undefined") {
+        const token = bearerData.split(" ")[1];
 
-    jwt.verify(token , "jwtSecret" , function(err , user){
-        if(!err){
-            req.user=user;
-            next();
-        }else{
-            return res.json({ message:"user not authenticated" });
-        }
-    });
-    
+        jwt.verify(token, "jwtSecret", function (err, foundUser) {
+            if (!err) {
+                req.user = foundUser;
+                next();
+            } else {
+                res.json({ isAuth: false });
+            }
+        });
+
+    } else {
+        return res.json({ isAuth: false });
+    }
+
 }
