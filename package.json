@@ -8,8 +8,7 @@
     "build": "cd frontEnd && npm run build",
     "install-frontEnd": "cd frontEnd && npm install",
     "heroku-postbuild": "npm run install-frontEnd && npm run build ",
-    "start": "cd src && node index.js",
-    "frontEnd": "cd frontEnd && npm start"
+    "start": "cd src && node index.js"
   },
   "author": "",
   "license": "ISC",
