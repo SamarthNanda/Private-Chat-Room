@@ -57,7 +57,6 @@ require("./Api/Routes/RefreshPostRoute")(app);
 // heroku production---------------------------------------------------------------------------
 if (process.env.NODE_ENV === "production") {
     app.use(express.static("frontEnd/build"));
-    app.get('*', (req, res) => {    res.sendFile(path.join(__dirname = 'frontEnd/build/index.html'));});
 }
 
 server.listen(PORT, function (req, res) {
