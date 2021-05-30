@@ -9,6 +9,7 @@ function infoBar({ room }) {
 
     function handleClick() {
         localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
     }
     return (
         <div className="infoBar">

@@ -40,12 +40,12 @@ function Chat() {
     //useEffect for joining the chat -----------------------------------------------------
     useEffect(() => {
         const token = JSON.parse(localStorage.getItem("token"));
-        const decodedToken = Decode(token);
 
-        if (decodedToken === null) {
+        if (token === null) {
             setLoggedIn(false);
         } else {
             setLoggedIn(true);
+            const decodedToken = Decode(token);
             const { email, room } = decodedToken;
 
             socket = io(ENDPOINT, connectionOptions);
