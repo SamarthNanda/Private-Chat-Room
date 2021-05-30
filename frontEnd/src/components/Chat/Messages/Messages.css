@@ -1,5 +1,8 @@
+
+
 .messages {
   padding: 2% 0;
   overflow: auto;
   flex: auto;
+  background-image: url("../../../icons/black-thread-light.png");
 }

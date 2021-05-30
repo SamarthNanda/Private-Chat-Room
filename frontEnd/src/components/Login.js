@@ -43,10 +43,10 @@ export default function Login() {
     }
 
     return (
-        <div className="form">
+        <div className="align-center form">
 
             <h1 className="mt-5">Private Chat Room</h1>
-            <h3 className="mt-4 align">Login</h3>
+            <h3 className="mt-4 align-left">Login</h3>
 
             <form className="mt-4">
                 <input type="text" id="login" className="form-control" name="username" placeholder="Username..." required
@@ -75,7 +75,7 @@ export default function Login() {
             {chatLink === "/chat"
                 ? <div><h3 className="mt-4">Hi {username}</h3>
                     <Link to={chatLink}>
-                        <button className="btn btn-info mt-3">Enter the Room '{room}'</button>
+                        <button className="enterRoom btn-info mt-3 ">Enter the Room '{room}'</button>
                     </Link></div>
                 : <span> </span>}
 
